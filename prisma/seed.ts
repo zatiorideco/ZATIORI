@@ -1,5 +1,6 @@
 import { PrismaClient, TipoOpcion } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { ESPEJOS_FALLBACK } from "../src/lib/espejos-data";
 
 const prisma = new PrismaClient();
 
@@ -80,7 +81,32 @@ async function main() {
     }
   }
 
-  console.log("Seed completado: admin@zatiori.com, configuración y opciones del configurador.");
+  // Espejos del catálogo (los mismos del respaldo estático, ahora en DB)
+  for (const e of ESPEJOS_FALLBACK) {
+    await prisma.espejoCatalogo.upsert({
+      where: { slug: e.slug },
+      update: {},
+      create: {
+        slug: e.slug,
+        nombre: e.nombre,
+        descripcion: e.descripcion,
+        tipoMarco: e.tipoMarco,
+        alto: e.alto,
+        ancho: e.ancho,
+        madera: e.madera,
+        patina: e.patina,
+        tallado: e.tallado,
+        precio: e.precio,
+        fotos: e.fotos,
+        estado: e.estado,
+        esStock: true,
+        publicadoWeb: true,
+        destacado: e.destacado,
+      },
+    });
+  }
+
+  console.log("Seed completado: admin@zatiori.com, configuración, opciones del configurador y 10 espejos de catálogo.");
 }
 
 main()
