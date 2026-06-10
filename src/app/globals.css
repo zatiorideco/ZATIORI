@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Zatiori: crema de fondo, negro cálido de texto, espresso como primario */
+    --background: 37 45% 92%; /* crema #F4EDE2 */
+    --foreground: 23 18% 9%; /* negro cálido #1A1512 */
+    --card: 37 45% 95%;
+    --card-foreground: 23 18% 9%;
+    --popover: 37 45% 95%;
+    --popover-foreground: 23 18% 9%;
+    --primary: 23 24% 20%; /* espresso #3E2F26 */
+    --primary-foreground: 37 45% 92%;
+    --secondary: 35 38% 82%; /* arena #E2D3BE */
+    --secondary-foreground: 23 24% 20%;
+    --muted: 35 38% 86%;
+    --muted-foreground: 23 16% 35%;
+    --accent: 30 34% 53%; /* madera #B0875F */
+    --accent-foreground: 37 45% 95%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 37 45% 95%;
+    --border: 35 30% 74%;
+    --input: 35 30% 74%;
+    --ring: 30 34% 53%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply tracking-wide;
+  }
+}

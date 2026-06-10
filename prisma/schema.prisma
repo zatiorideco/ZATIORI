@@ -1,0 +1,334 @@
+// Zatiori — Almacén de Espejos (Bahía Blanca)
+// Web pública + panel de gestión sobre la misma DB.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum Rol {
+  ADMIN
+  VENTAS
+  FABRICA
+}
+
+enum TipoOpcion {
+  MADERA
+  PATINA
+  TALLADO
+  TAMANO
+  EXTRA
+}
+
+enum TipoProveedor {
+  MADERA
+  ESPEJO
+  INSUMO
+  HERRAJE
+}
+
+enum OrigenCliente {
+  WEB
+  INSTAGRAM
+  LOCAL
+  REFERIDO
+  WHATSAPP
+}
+
+enum TipoInteraccion {
+  NOTA
+  LLAMADA
+  WHATSAPP
+  VISITA
+  EMAIL
+}
+
+enum EstadoCatalogo {
+  DISPONIBLE
+  RESERVADO
+  VENDIDO
+}
+
+enum EstadoPedido {
+  PRESUPUESTO
+  CONFIRMADO
+  EN_FABRICACION
+  TERMINADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum EstadoFabricacion {
+  PARA_FABRICAR
+  EN_FABRICACION
+  TERMINADO_CLIENTE
+  TERMINADO_STOCK
+}
+
+enum Prioridad {
+  BAJA
+  MEDIA
+  ALTA
+}
+
+enum EstadoPublicacion {
+  BORRADOR
+  PROGRAMADA
+  PUBLICADA
+  ERROR
+}
+
+// ───────────────────────── Modelos ─────────────────────────
+
+model Usuario {
+  id           String   @id @default(cuid())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          Rol      @default(VENTAS)
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  interacciones InteraccionCliente[]
+  pedidos       Pedido[]
+  fabricaciones EspejoFabricacion[]  @relation("Responsable")
+}
+
+// Singleton: una sola fila con id "singleton".
+model Configuracion {
+  id               String   @id @default("singleton")
+  nombreNegocio    String   @default("Zatiori")
+  direccion        String?
+  whatsapp         String?
+  instagram        String?
+  emailContacto    String?
+  logoUrl          String?
+  datosFiscales    String?
+  textoNosotros    String?
+  textoTerminos    String?
+  horarios         String?
+  igTokenEncrypted String? // token IG larga duración, cifrado AES-256-GCM
+  igBusinessId     String?
+  fbPageId         String?
+  updatedAt        DateTime @updatedAt
+}
+
+// Opciones del configurador público, administrables desde Configuración.
+model OpcionConfigurador {
+  id              String     @id @default(cuid())
+  tipo            TipoOpcion
+  nombre          String
+  descripcion     String?
+  precioAdicional Decimal    @default(0) @db.Decimal(12, 2)
+  imagenUrl       String?
+  activo          Boolean    @default(true)
+  orden           Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  itemsMadera  ItemPedido[] @relation("ItemMadera")
+  itemsPatina  ItemPedido[] @relation("ItemPatina")
+  itemsTallado ItemPedido[] @relation("ItemTallado")
+
+  @@index([tipo, activo, orden])
+}
+
+model Proveedor {
+  id        String        @id @default(cuid())
+  tipo      TipoProveedor
+  nombre    String
+  contacto  String?
+  telefono  String?
+  email     String?
+  direccion String?
+  notas     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  espejos EspejoCatalogo[]
+}
+
+model Cliente {
+  id        String        @id @default(cuid())
+  nombre    String
+  telefono  String?
+  email     String?
+  direccion String?
+  ciudad    String?
+  origen    OrigenCliente @default(WEB)
+  notas     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  interacciones InteraccionCliente[]
+  pedidos       Pedido[]
+  fabricaciones EspejoFabricacion[]
+  resenas       Resena[]
+}
+
+model InteraccionCliente {
+  id        String          @id @default(cuid())
+  clienteId String
+  tipo      TipoInteraccion @default(NOTA)
+  contenido String
+  usuarioId String?
+  fecha     DateTime        @default(now())
+
+  cliente Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([clienteId, fecha])
+}
+
+model EspejoCatalogo {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  nombre       String
+  descripcion  String?
+  tipoMarco    String?
+  alto         Int? // cm
+  ancho        Int? // cm
+  madera       String?
+  patina       String?
+  tallado      String?
+  proveedorId  String?
+  precio       Decimal        @default(0) @db.Decimal(12, 2)
+  fotos        String[]       @default([])
+  estado       EstadoCatalogo @default(DISPONIBLE)
+  esStock      Boolean        @default(true)
+  publicadoWeb Boolean        @default(false)
+  destacado    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  proveedor     Proveedor?             @relation(fields: [proveedorId], references: [id], onDelete: SetNull)
+  items         ItemPedido[]
+  fabricaciones EspejoFabricacion[]
+  publicaciones PublicacionInstagram[]
+
+  @@index([publicadoWeb, estado])
+}
+
+model Pedido {
+  id            String        @id @default(cuid())
+  numero        String        @unique // ZAT-0001, generado en código sobre numeroSeq
+  numeroSeq     Int           @default(autoincrement())
+  clienteId     String
+  estado        EstadoPedido  @default(PRESUPUESTO)
+  origen        OrigenCliente @default(WEB)
+  subtotal      Decimal       @default(0) @db.Decimal(12, 2)
+  descuento     Decimal       @default(0) @db.Decimal(12, 2)
+  total         Decimal       @default(0) @db.Decimal(12, 2)
+  sena          Decimal       @default(0) @db.Decimal(12, 2)
+  saldo         Decimal       @default(0) @db.Decimal(12, 2)
+  fechaEstimada DateTime?
+  notas         String?
+  usuarioId     String? // vendedor que lo cargó (null si vino de la web)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  cliente Cliente      @relation(fields: [clienteId], references: [id])
+  usuario Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  items   ItemPedido[]
+
+  @@index([estado, createdAt])
+}
+
+model ItemPedido {
+  id                String   @id @default(cuid())
+  pedidoId          String
+  espejoCatalogoId  String? // si es un espejo de stock
+  descripcion       String
+  alto              Int? // cm
+  ancho             Int? // cm
+  maderaOpcionId    String?
+  patinaOpcionId    String?
+  talladoOpcionId   String?
+  extras            Json? // [{ opcionId, nombre, precio }]
+  cantidad          Int      @default(1)
+  precioUnitario    Decimal  @default(0) @db.Decimal(12, 2)
+  fotoReferenciaUrl String?
+  notas             String?
+  createdAt         DateTime @default(now())
+
+  pedido         Pedido              @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  espejoCatalogo EspejoCatalogo?     @relation(fields: [espejoCatalogoId], references: [id], onDelete: SetNull)
+  maderaOpcion   OpcionConfigurador? @relation("ItemMadera", fields: [maderaOpcionId], references: [id], onDelete: SetNull)
+  patinaOpcion   OpcionConfigurador? @relation("ItemPatina", fields: [patinaOpcionId], references: [id], onDelete: SetNull)
+  talladoOpcion  OpcionConfigurador? @relation("ItemTallado", fields: [talladoOpcionId], references: [id], onDelete: SetNull)
+
+  fabricaciones EspejoFabricacion[]
+}
+
+model EspejoFabricacion {
+  id               String            @id @default(cuid())
+  pedidoItemId     String? // null si es espejo para stock
+  espejoCatalogoId String? // se vincula al pasar a catálogo
+  clienteId        String? // null = stock; definido = pedido de cliente
+  estado           EstadoFabricacion @default(PARA_FABRICAR)
+  descripcion      String
+  alto             Int? // cm
+  ancho            Int? // cm
+  especificaciones Json? // { madera, patina, tallado, extras }
+  responsableId    String?
+  prioridad        Prioridad         @default(MEDIA)
+  fechaInicio      DateTime?
+  fechaFin         DateTime?
+  fotos            String[]          @default([])
+  notasProduccion  String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  pedidoItem     ItemPedido?            @relation(fields: [pedidoItemId], references: [id], onDelete: SetNull)
+  espejoCatalogo EspejoCatalogo?        @relation(fields: [espejoCatalogoId], references: [id], onDelete: SetNull)
+  cliente        Cliente?               @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  responsable    Usuario?               @relation("Responsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  publicaciones  PublicacionInstagram[]
+
+  @@index([estado, prioridad])
+}
+
+model Resena {
+  id           String   @id @default(cuid())
+  clienteId    String?
+  token        String   @unique @default(cuid()) // ruta pública /resena/[token]
+  nombre       String
+  rating       Int // 1–5
+  texto        String
+  fotos        String[] @default([])
+  aprobada     Boolean  @default(false)
+  publicadaWeb Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cliente Cliente? @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+
+  @@index([aprobada, publicadaWeb])
+}
+
+model PublicacionInstagram {
+  id                  String            @id @default(cuid())
+  espejoCatalogoId    String?
+  espejoFabricacionId String?
+  caption             String
+  imagenes            String[]          @default([])
+  estado              EstadoPublicacion @default(BORRADOR)
+  fechaProgramada     DateTime?
+  igMediaId           String?
+  igPermalink         String?
+  errorMensaje        String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  espejoCatalogo    EspejoCatalogo?    @relation(fields: [espejoCatalogoId], references: [id], onDelete: SetNull)
+  espejoFabricacion EspejoFabricacion? @relation(fields: [espejoFabricacionId], references: [id], onDelete: SetNull)
+
+  @@index([estado, fechaProgramada])
+}
