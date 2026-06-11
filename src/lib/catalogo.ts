@@ -56,6 +56,19 @@ export async function getDestacados(): Promise<EspejoPublico[]> {
   return todos.filter((e) => e.destacado).slice(0, 6);
 }
 
+export async function getResenasPublicadas() {
+  try {
+    return await prisma.resena.findMany({
+      where: { aprobada: true, publicadaWeb: true },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: { id: true, nombre: true, rating: true, texto: true, fotos: true },
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getTextosNegocio() {
   try {
     const config = await prisma.configuracion.findUnique({

@@ -7,6 +7,7 @@ import { formatARS, fechaAR } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { OrigenBadge } from "@/components/panel/OrigenBadge";
 import { ClienteAcciones } from "@/components/panel/ClienteAcciones";
+import { PedirResena } from "@/components/panel/PedirResena";
 import { Timeline } from "@/components/panel/Timeline";
 
 export const dynamic = "force-dynamic";
@@ -61,18 +62,25 @@ export default async function ClienteDetallePage({
             )}
           </div>
         </div>
-        <ClienteAcciones
-          cliente={{
-            id: cliente.id,
-            nombre: cliente.nombre,
-            telefono: cliente.telefono,
-            email: cliente.email,
-            direccion: cliente.direccion,
-            ciudad: cliente.ciudad,
-            origen: cliente.origen,
-            notas: cliente.notas,
-          }}
-        />
+        <div className="flex flex-col items-end gap-3">
+          <ClienteAcciones
+            cliente={{
+              id: cliente.id,
+              nombre: cliente.nombre,
+              telefono: cliente.telefono,
+              email: cliente.email,
+              direccion: cliente.direccion,
+              ciudad: cliente.ciudad,
+              origen: cliente.origen,
+              notas: cliente.notas,
+            }}
+          />
+          <PedirResena
+            clienteId={cliente.id}
+            nombre={cliente.nombre}
+            telefono={cliente.telefono}
+          />
+        </div>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">

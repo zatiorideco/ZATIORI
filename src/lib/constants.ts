@@ -1,3 +1,6 @@
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://zatiori.vercel.app";
+
 export const NEGOCIO = {
   nombre: "Zatiori",
   descripcion:

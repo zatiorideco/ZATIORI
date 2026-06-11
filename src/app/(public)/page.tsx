@@ -2,13 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Hammer, Sparkles, TreePine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import { EspejoCard } from "@/components/public/EspejoCard";
-import { getDestacados } from "@/lib/catalogo";
+import { getDestacados, getResenasPublicadas } from "@/lib/catalogo";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const destacados = await getDestacados();
+  const [destacados, resenas] = await Promise.all([
+    getDestacados(),
+    getResenasPublicadas(),
+  ]);
   return (
     <>
       {/* Hero */}
@@ -111,6 +115,47 @@ export default async function HomePage() {
             <Link href="/catalogo">
               <Button variant="outline">Ver todo el catálogo</Button>
             </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Reseñas */}
+      {resenas.length > 0 && (
+        <section className="bg-surface py-16">
+          <div className="container">
+            <p className="text-center font-editorial italic text-madera">
+              Espejos que ya tienen casa
+            </p>
+            <h2 className="mt-2 text-center font-display text-3xl uppercase text-espresso md:text-4xl">
+              Lo que dicen nuestros clientes
+            </h2>
+            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {resenas.map((r) => (
+                <figure
+                  key={r.id}
+                  className="rounded-lg border border-line bg-card p-6 shadow-sm"
+                >
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={
+                          i < r.rating
+                            ? "h-4 w-4 fill-madera text-madera"
+                            : "h-4 w-4 text-arena"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <blockquote className="mt-3 font-editorial text-negro/85">
+                    “{r.texto}”
+                  </blockquote>
+                  <figcaption className="mt-4 text-sm font-medium text-espresso">
+                    {r.nombre}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
         </section>
       )}

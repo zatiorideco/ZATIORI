@@ -12,6 +12,7 @@ import {
   Star,
   Instagram,
   Settings,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Rol } from "@prisma/client";
@@ -31,9 +32,10 @@ const items: Item[] = [
   { href: "/panel/proveedores", label: "Proveedores", icono: Truck, roles: ["ADMIN"] },
   { href: "/panel/pedidos", label: "Pedidos", icono: FileText, roles: ["ADMIN", "VENTAS", "FABRICA"] },
   { href: "/panel/fabrica", label: "Fábrica", icono: Hammer, roles: ["ADMIN", "VENTAS", "FABRICA"] },
-  { href: "/panel/resenas", label: "Reseñas", icono: Star, roles: ["ADMIN", "VENTAS"], proximamente: "Fase 6" },
-  { href: "/panel/instagram", label: "Instagram", icono: Instagram, roles: ["ADMIN", "VENTAS"], proximamente: "Fase 6" },
-  { href: "/panel/configuracion", label: "Configuración", icono: Settings, roles: ["ADMIN"], proximamente: "Fase 6" },
+  { href: "/panel/resenas", label: "Reseñas", icono: Star, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/instagram", label: "Instagram", icono: Instagram, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/usuarios", label: "Usuarios", icono: UserCog, roles: ["ADMIN"] },
+  { href: "/panel/configuracion", label: "Configuración", icono: Settings, roles: ["ADMIN"] },
 ];
 
 export function PanelNav({ rol }: { rol: Rol }) {
