@@ -84,7 +84,31 @@ enum EstadoPublicacion {
   ERROR
 }
 
+enum TipoEventoWeb {
+  PAGEVIEW
+  WHATSAPP_CLICK
+  INSTAGRAM_CLICK
+  PEDIDO_WEB
+}
+
 // ───────────────────────── Modelos ─────────────────────────
+
+// Analítica propia de la web pública (sin servicios externos).
+model EventoWeb {
+  id        String        @id @default(cuid())
+  tipo      TipoEventoWeb @default(PAGEVIEW)
+  path      String?
+  fuente    String? // directo | interno | Instagram | Google | ...
+  visitante String? // cookie anónima para contar únicos
+  ciudad    String?
+  region    String?
+  pais      String?
+  valor     Decimal?      @db.Decimal(12, 2) // monto en conversiones
+  createdAt DateTime      @default(now())
+
+  @@index([tipo, createdAt])
+  @@index([createdAt])
+}
 
 model Usuario {
   id           String   @id @default(cuid())

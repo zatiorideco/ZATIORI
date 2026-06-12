@@ -55,6 +55,28 @@ export async function POST(req: Request) {
       },
     });
     await notificarPedidoNuevo(pedido, datos.contacto);
+
+    // Conversión para el dashboard (nunca rompe el pedido)
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const visitante = req.headers.get("cookie")?.match(/zat_vid=([a-f0-9-]+)/)?.[1];
+      const geo = (h: string) => {
+        const v = req.headers.get(h);
+        try { return v ? decodeURIComponent(v) : null; } catch { return v; }
+      };
+      await prisma.eventoWeb.create({
+        data: {
+          tipo: "PEDIDO_WEB",
+          path: "/configurador",
+          fuente: "configurador",
+          visitante: visitante ?? null,
+          ciudad: geo("x-vercel-ip-city"),
+          region: geo("x-vercel-ip-country-region"),
+          pais: geo("x-vercel-ip-country"),
+          valor: pedido.total,
+        },
+      });
+    } catch {}
     return NextResponse.json(pedido, { status: 201 });
   } catch (e) {
     console.error("[configurador] error creando pedido:", e);

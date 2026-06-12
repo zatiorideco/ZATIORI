@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EstadisticasWeb } from "@/components/panel/EstadisticasWeb";
 
 export const dynamic = "force-dynamic";
 
@@ -187,12 +188,14 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      <EstadisticasWeb />
+
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
-          href="/panel/clientes"
+          href="/panel/pedidos"
           className="inline-flex items-center gap-1 text-sm text-madera hover:underline"
         >
-          Ir a clientes <ArrowRight className="h-3 w-3" />
+          Ir a pedidos <ArrowRight className="h-3 w-3" />
         </Link>
         <Link
           href="/panel/catalogo"
