@@ -25,15 +25,16 @@ type Item = {
   proximamente?: string;
 };
 
+// El orden refleja el flujo del negocio: todo arranca en Pedidos.
 const items: Item[] = [
   { href: "/panel", label: "Dashboard", icono: LayoutDashboard, roles: ["ADMIN", "VENTAS"] },
-  { href: "/panel/clientes", label: "Clientes", icono: Users, roles: ["ADMIN", "VENTAS"] },
-  { href: "/panel/catalogo", label: "Catálogo", icono: Package, roles: ["ADMIN", "VENTAS"] },
-  { href: "/panel/proveedores", label: "Proveedores", icono: Truck, roles: ["ADMIN"] },
   { href: "/panel/pedidos", label: "Pedidos", icono: FileText, roles: ["ADMIN", "VENTAS", "FABRICA"] },
   { href: "/panel/fabrica", label: "Fábrica", icono: Hammer, roles: ["ADMIN", "VENTAS", "FABRICA"] },
-  { href: "/panel/resenas", label: "Reseñas", icono: Star, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/catalogo", label: "Catálogo", icono: Package, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/clientes", label: "Clientes", icono: Users, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/proveedores", label: "Proveedores", icono: Truck, roles: ["ADMIN"] },
   { href: "/panel/instagram", label: "Instagram", icono: Instagram, roles: ["ADMIN", "VENTAS"] },
+  { href: "/panel/resenas", label: "Reseñas", icono: Star, roles: ["ADMIN", "VENTAS"] },
   { href: "/panel/usuarios", label: "Usuarios", icono: UserCog, roles: ["ADMIN"] },
   { href: "/panel/configuracion", label: "Configuración", icono: Settings, roles: ["ADMIN"] },
 ];

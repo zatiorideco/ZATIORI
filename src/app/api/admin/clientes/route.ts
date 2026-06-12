@@ -13,6 +13,29 @@ const esquemaCliente = z.object({
   notas: z.string().max(2000).optional().or(z.literal("")),
 });
 
+/** Buscador de clientes (para el alta de pedidos). */
+export async function GET(req: Request) {
+  const { error } = await guard("ADMIN", "VENTAS");
+  if (error) return error;
+
+  const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
+  const clientes = await prisma.cliente.findMany({
+    where: q
+      ? {
+          OR: [
+            { nombre: { contains: q, mode: "insensitive" } },
+            { telefono: { contains: q } },
+            { email: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
+    orderBy: { updatedAt: "desc" },
+    take: 10,
+    select: { id: true, nombre: true, telefono: true, ciudad: true },
+  });
+  return NextResponse.json(clientes);
+}
+
 export async function POST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;

@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { guard, errorJson } from "@/lib/api-auth";
+import {
+  esClienteZatiori,
+  pasarACatalogo,
+  sincronizarPedidoDesdeFabrica,
+} from "@/lib/fabrica";
 
 const esquemaPatch = z.object({
-  // TERMINADO_AUTO aplica el auto-ruteo: cliente → TERMINADO_CLIENTE, sin cliente → TERMINADO_STOCK
+  // TERMINADO_AUTO aplica el auto-ruteo: cliente → TERMINADO_CLIENTE, sin cliente o ZATIORI → TERMINADO_STOCK
   estado: z
     .enum([
       "PARA_FABRICAR",
@@ -33,13 +38,18 @@ export async function PATCH(
 
   const actual = await prisma.espejoFabricacion.findUnique({
     where: { id: params.id },
+    include: { cliente: { select: { nombre: true } } },
   });
   if (!actual) return errorJson("No encontrado", 404);
 
-  // Auto-ruteo al terminar
+  const esZatiori = esClienteZatiori(actual.cliente?.nombre);
+
+  // Auto-ruteo al terminar; los pedidos ZATIORI son stock propio
   let estado = d.estado;
   if (estado === "TERMINADO_AUTO") {
-    estado = actual.clienteId ? "TERMINADO_CLIENTE" : "TERMINADO_STOCK";
+    estado = actual.clienteId && !esZatiori ? "TERMINADO_CLIENTE" : "TERMINADO_STOCK";
+  } else if (estado === "TERMINADO_CLIENTE" && esZatiori) {
+    estado = "TERMINADO_STOCK";
   }
 
   const esTerminado =
@@ -62,5 +72,17 @@ export async function PATCH(
       ...(d.fotos && { fotos: d.fotos }),
     },
   });
-  return NextResponse.json({ ok: true, estado: fabricacion.estado });
+
+  let aCatalogo = false;
+  if (estado) {
+    // El pedido acompaña el movimiento del pipeline
+    await sincronizarPedidoDesdeFabrica(fabricacion, estado);
+    // Stock propio terminado: entra solo al catálogo
+    if (estado === "TERMINADO_STOCK" && !fabricacion.espejoCatalogoId) {
+      await pasarACatalogo(fabricacion);
+      aCatalogo = true;
+    }
+  }
+
+  return NextResponse.json({ ok: true, estado: fabricacion.estado, aCatalogo });
 }

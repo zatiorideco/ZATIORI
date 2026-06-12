@@ -185,8 +185,8 @@ export function Configurador({ opciones, precioM2, precioMinimo }: Props) {
         <p className="mt-3 font-editorial text-lg text-negro/80">
           Tu número de pedido es{" "}
           <span className="font-semibold text-espresso">{resultado.numero}</span>{" "}
-          y el precio estimado {formatARS(resultado.total)}. Ya entró a la cola
-          del taller: te vamos a escribir para confirmar los detalles y la seña.
+          y el precio estimado {formatARS(resultado.total)}. Te vamos a
+          escribir para confirmar los detalles y la seña, y ahí pasa al taller.
         </p>
         <div className="mt-8 flex flex-col items-center gap-3">
           <a href={whatsappLink(mensajeWA)} target="_blank" rel="noopener noreferrer">

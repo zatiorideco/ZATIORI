@@ -22,12 +22,12 @@ import {
 export const dynamic = "force-dynamic";
 
 const ESTADO_PEDIDO_LABEL: Record<string, string> = {
-  PRESUPUESTO: "Presupuesto",
-  CONFIRMADO: "Confirmado",
+  SIN_PRESUPUESTAR: "Sin presupuestar",
+  PRESUPUESTADO: "Presupuestado",
+  PARA_FABRICAR: "Para fabricar",
   EN_FABRICACION: "En fabricación",
-  TERMINADO: "Terminado",
+  PARA_ENTREGAR: "Para entregar",
   ENTREGADO: "Entregado",
-  CANCELADO: "Cancelado",
 };
 
 export default async function DashboardPage() {
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     prisma.pedido.aggregate({
       _sum: { total: true },
       where: {
-        estado: { notIn: ["CANCELADO", "PRESUPUESTO"] },
+        estado: { in: ["PARA_FABRICAR", "EN_FABRICACION", "PARA_ENTREGAR", "ENTREGADO"] },
         createdAt: { gte: inicioMes },
       },
     }),
@@ -73,9 +73,11 @@ export default async function DashboardPage() {
   const contarEstado = (estado: string) =>
     pedidosPorEstado.find((p) => p.estado === estado)?._count ?? 0;
   const pedidosActivos =
-    contarEstado("PRESUPUESTO") +
-    contarEstado("CONFIRMADO") +
-    contarEstado("EN_FABRICACION");
+    contarEstado("SIN_PRESUPUESTAR") +
+    contarEstado("PRESUPUESTADO") +
+    contarEstado("PARA_FABRICAR") +
+    contarEstado("EN_FABRICACION") +
+    contarEstado("PARA_ENTREGAR");
 
   const kpis = [
     {
@@ -87,7 +89,7 @@ export default async function DashboardPage() {
     {
       titulo: "Pedidos activos",
       valor: String(pedidosActivos),
-      detalle: `${contarEstado("PRESUPUESTO")} presupuestos sin confirmar`,
+      detalle: `${contarEstado("SIN_PRESUPUESTAR")} sin presupuestar`,
       icono: FileText,
     },
     {

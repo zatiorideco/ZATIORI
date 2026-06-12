@@ -56,12 +56,12 @@ enum EstadoCatalogo {
 }
 
 enum EstadoPedido {
-  PRESUPUESTO
-  CONFIRMADO
+  SIN_PRESUPUESTAR
+  PRESUPUESTADO
+  PARA_FABRICAR
   EN_FABRICACION
-  TERMINADO
+  PARA_ENTREGAR
   ENTREGADO
-  CANCELADO
 }
 
 enum EstadoFabricacion {
@@ -221,7 +221,7 @@ model Pedido {
   numero        String        @unique // ZAT-0001, generado en código sobre numeroSeq
   numeroSeq     Int           @default(autoincrement())
   clienteId     String
-  estado        EstadoPedido  @default(PRESUPUESTO)
+  estado        EstadoPedido  @default(SIN_PRESUPUESTAR)
   origen        OrigenCliente @default(WEB)
   subtotal      Decimal       @default(0) @db.Decimal(12, 2)
   descuento     Decimal       @default(0) @db.Decimal(12, 2)

@@ -20,13 +20,13 @@ type Pedido = {
 };
 
 const ESTADOS = [
-  "PRESUPUESTO",
-  "CONFIRMADO",
-  "EN_FABRICACION",
-  "TERMINADO",
-  "ENTREGADO",
-  "CANCELADO",
-];
+  ["SIN_PRESUPUESTAR", "Sin presupuestar"],
+  ["PRESUPUESTADO", "Presupuestado"],
+  ["PARA_FABRICAR", "Para fabricar"],
+  ["EN_FABRICACION", "En fabricación"],
+  ["PARA_ENTREGAR", "Para entregar"],
+  ["ENTREGADO", "Entregado (archiva)"],
+] as const;
 
 export function PedidoEditor({
   pedido,
@@ -88,9 +88,9 @@ export function PedidoEditor({
             value={estado}
             onChange={(e) => setEstado(e.target.value)}
           >
-            {ESTADOS.map((s) => (
-              <option key={s} value={s}>
-                {s.replace("_", " ")}
+            {ESTADOS.map(([valor, label]) => (
+              <option key={valor} value={valor}>
+                {label}
               </option>
             ))}
           </select>

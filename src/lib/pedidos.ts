@@ -131,7 +131,7 @@ export async function crearPedidoDesdeConfigurador(
       data: {
         numero: `TMP-${randomUUID()}`,
         clienteId: cliente.id,
-        estado: "PRESUPUESTO",
+        estado: "PRESUPUESTADO", // viene con precio estimado; pasa al taller desde el panel
         origen: "WEB",
         subtotal: total,
         total,
@@ -165,24 +165,9 @@ export async function crearPedidoDesdeConfigurador(
       },
     });
 
-    // Registro de fábrica: entra directo como PARA_FABRICAR con cliente vinculado
-    await tx.espejoFabricacion.create({
-      data: {
-        pedidoItemId: item.id,
-        clienteId: cliente.id,
-        estado: "PARA_FABRICAR",
-        descripcion: `${numeroFinal} · ${descripcion}`,
-        ancho,
-        alto,
-        especificaciones: {
-          madera: nombreOpcion(madera),
-          patina: nombreOpcion(patina),
-          tallado: nombreOpcion(tallado),
-          extras: extras.map((e) => e.nombre),
-        },
-        prioridad: "MEDIA",
-      },
-    });
+    // Las especificaciones del configurador quedan en el item; la orden de
+    // fábrica se genera cuando el pedido pasa a PARA_FABRICAR desde el panel.
+    void item;
 
     await tx.interaccionCliente.create({
       data: {

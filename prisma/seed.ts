@@ -81,6 +81,21 @@ async function main() {
     }
   }
 
+  // Cliente interno: pedidos a nombre de ZATIORI son espejos para stock propio
+  const zatiori = await prisma.cliente.findFirst({
+    where: { nombre: "ZATIORI" },
+  });
+  if (!zatiori) {
+    await prisma.cliente.create({
+      data: {
+        nombre: "ZATIORI",
+        origen: "LOCAL",
+        notas:
+          "Cliente interno. Usalo en pedidos de espejos para stock: al terminarse en fábrica pasan directo al catálogo.",
+      },
+    });
+  }
+
   // Espejos del catálogo (los mismos del respaldo estático, ahora en DB)
   for (const e of ESPEJOS_FALLBACK) {
     await prisma.espejoCatalogo.upsert({

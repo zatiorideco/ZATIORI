@@ -46,7 +46,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
-  const { error } = await guard("ADMIN");
+  const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
   try {
