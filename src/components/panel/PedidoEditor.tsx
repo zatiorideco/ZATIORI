@@ -37,6 +37,7 @@ export function PedidoEditor({
 }) {
   const router = useRouter();
   const [estado, setEstado] = useState(pedido.estado);
+  const [presupuesto, setPresupuesto] = useState(String(pedido.subtotal));
   const [descuento, setDescuento] = useState(String(pedido.descuento));
   const [sena, setSena] = useState(String(pedido.sena));
   const [fecha, setFecha] = useState(
@@ -46,8 +47,10 @@ export function PedidoEditor({
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  const totalCalc = Math.max(pedido.subtotal - (Number(descuento) || 0), 0);
+  const subtotalCalc = Number(presupuesto) || 0;
+  const totalCalc = Math.max(subtotalCalc - (Number(descuento) || 0), 0);
   const saldoCalc = Math.max(totalCalc - (Number(sena) || 0), 0);
+  const presupuestoTocado = subtotalCalc !== pedido.subtotal;
 
   async function guardar() {
     setGuardando(true);
@@ -57,6 +60,8 @@ export function PedidoEditor({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         estado,
+        // Solo mandamos presupuesto si lo cambió (así no pisa la suma de ítems)
+        ...(presupuestoTocado && { presupuesto: subtotalCalc }),
         descuento: Number(descuento) || 0,
         sena: Number(sena) || 0,
         fechaEstimada: fecha ? new Date(`${fecha}T12:00:00-03:00`).toISOString() : null,
@@ -97,9 +102,16 @@ export function PedidoEditor({
         </div>
 
         <div className="space-y-2 rounded-md bg-background p-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatARS(pedido.subtotal)}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-muted-foreground">Presupuesto</span>
+            <Input
+              type="number"
+              min={0}
+              disabled={!puedeEditar}
+              className="h-8 w-28 text-right"
+              value={presupuesto}
+              onChange={(e) => setPresupuesto(e.target.value)}
+            />
           </div>
           <div className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground">Descuento</span>

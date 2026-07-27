@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, FileText, Hammer } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { formatARS, fechaAR } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PedidoEditor } from "@/components/panel/PedidoEditor";
+import { ItemEditor } from "@/components/panel/ItemEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -90,61 +90,27 @@ export default async function PedidoDetallePage({
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <h2 className="font-display text-xl uppercase text-espresso">
-            Items
+            Detalle del pedido
           </h2>
           <div className="mt-3 space-y-3">
             {pedido.items.map((item) => (
-              <div
+              <ItemEditor
                 key={item.id}
-                className="rounded-lg border border-arena bg-card p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-espresso">
-                      {item.descripcion}
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      {item.ancho && item.alto && (
-                        <span>
-                          {item.ancho} × {item.alto} cm
-                        </span>
-                      )}
-                      {item.maderaOpcion && (
-                        <span>Madera: {item.maderaOpcion.nombre}</span>
-                      )}
-                      {item.patinaOpcion && (
-                        <span>Pátina: {item.patinaOpcion.nombre}</span>
-                      )}
-                      {item.talladoOpcion && (
-                        <span>Tallado: {item.talladoOpcion.nombre}</span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="font-editorial text-lg">
-                    {formatARS(Number(item.precioUnitario) * item.cantidad)}
-                  </p>
-                </div>
-                {item.fabricaciones.length > 0 && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-arena/60 pt-3">
-                    <Hammer className="h-4 w-4 text-madera" />
-                    {item.fabricaciones.map((f) => (
-                      <span key={f.id} className="flex items-center gap-2">
-                        <Badge variant="secondary">
-                          {f.estado.replace(/_/g, " ")}
-                        </Badge>
-                        <a
-                          href={`/api/admin/fabricacion/${f.id}/pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-madera hover:underline"
-                        >
-                          Orden de fabricación (PDF)
-                        </a>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+                puedeEditar={puedeEditar}
+                item={{
+                  id: item.id,
+                  descripcion: item.descripcion,
+                  alto: item.alto,
+                  ancho: item.ancho,
+                  cantidad: item.cantidad,
+                  precioUnitario: Number(item.precioUnitario),
+                  notas: item.notas,
+                  madera: item.maderaOpcion?.nombre ?? null,
+                  patina: item.patinaOpcion?.nombre ?? null,
+                  tallado: item.talladoOpcion?.nombre ?? null,
+                  fabricaciones: item.fabricaciones,
+                }}
+              />
             ))}
           </div>
         </div>
