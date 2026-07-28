@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquema = z.object({
   nombre: z.string().min(2).max(100),
@@ -11,7 +11,7 @@ const esquema = z.object({
   rol: z.enum(["ADMIN", "VENTAS", "FABRICA"]),
 });
 
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN");
   if (error) return error;
 
@@ -37,3 +37,5 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(usuario, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

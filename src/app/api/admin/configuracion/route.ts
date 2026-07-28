@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { cifrar } from "@/lib/crypto";
+import { revalidarWebPublica } from "@/lib/revalidar";
 
 const esquema = z.object({
   nombreNegocio: z.string().min(1).max(100).optional(),
@@ -20,7 +21,7 @@ const esquema = z.object({
   fbPageId: z.string().max(50).nullable().optional(),
 });
 
-export async function PATCH(req: Request) {
+async function handlerPATCH(req: Request) {
   const { error } = await guard("ADMIN");
   if (error) return error;
 
@@ -52,5 +53,8 @@ export async function PATCH(req: Request) {
       ...(igTokenEncrypted !== undefined && { igTokenEncrypted }),
     },
   });
+  revalidarWebPublica();
   return NextResponse.json({ ok: true, igConfigurado: !!config.igTokenEncrypted });
 }
+
+export const PATCH = withApi(handlerPATCH);

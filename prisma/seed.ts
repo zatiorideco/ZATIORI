@@ -6,10 +6,13 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Usuario admin inicial
-  const passwordHash = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD ?? "zatiori2026",
-    10
-  );
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error(
+      "Falta la variable de entorno ADMIN_PASSWORD para crear el usuario admin del seed."
+    );
+  }
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
   await prisma.usuario.upsert({
     where: { email: "admin@zatiori.com" },
     update: {},

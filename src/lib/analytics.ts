@@ -64,7 +64,7 @@ export async function getEstadisticasWeb(): Promise<EstadisticasWeb | null> {
           FROM "EventoWeb"
           WHERE tipo = 'PAGEVIEW' AND "createdAt" >= ${hace30}`,
         prisma.$queryRaw<Array<{ dia: string; visitas: bigint }>>`
-          SELECT to_char("createdAt" AT TIME ZONE ${TZ}, 'YYYY-MM-DD') as dia,
+          SELECT to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${TZ}, 'YYYY-MM-DD') as dia,
                  count(*) as visitas
           FROM "EventoWeb"
           WHERE tipo = 'PAGEVIEW' AND "createdAt" >= ${hace7}

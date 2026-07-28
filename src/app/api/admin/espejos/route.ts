@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { slugify } from "@/lib/utils";
+import { revalidarWebPublica } from "@/lib/revalidar";
 
 const esquemaEspejo = z.object({
   nombre: z.string().min(2).max(100),
@@ -22,7 +23,7 @@ const esquemaEspejo = z.object({
   destacado: z.boolean().default(false),
 });
 
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -58,5 +59,8 @@ export async function POST(req: Request) {
       destacado: d.destacado,
     },
   });
+  revalidarWebPublica(espejo.slug);
   return NextResponse.json(espejo, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaNuevo = z.object({
   descripcion: z.string().min(3).max(300),
@@ -12,7 +12,7 @@ const esquemaNuevo = z.object({
 });
 
 /** Crear espejo para stock: entra PARA_FABRICAR sin cliente. */
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS", "FABRICA");
   if (error) return error;
 
@@ -32,3 +32,5 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(fabricacion, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

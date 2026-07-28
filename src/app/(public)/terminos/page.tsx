@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Términos y condiciones",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const TEXTO_DEFAULT = `Pedidos a medida: requieren una seña del 50% para entrar en fabricación. El saldo se abona al retirar o antes del envío.
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquema = z.object({
   espejoCatalogoId: z.string().nullable().optional(),
@@ -13,7 +13,7 @@ const esquema = z.object({
 
 /** Crear publicación: SIEMPRE entra como BORRADOR (o PROGRAMADA si tiene fecha).
  *  Publicar de verdad requiere el POST /publicar explícito. */
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -33,3 +33,5 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(publicacion, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

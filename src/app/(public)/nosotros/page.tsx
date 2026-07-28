@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "Zatiori es un almacén de espejos artesanal de Bahía Blanca. Conocé nuestro taller y nuestra forma de trabajar la madera.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const TEXTO_DEFAULT = `Zatiori nace en Bahía Blanca de una idea simple: un espejo no es solo un objeto útil, es la pieza que le cambia la luz a una casa.
 

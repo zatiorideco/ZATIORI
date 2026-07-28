@@ -20,6 +20,7 @@ function aPublico(e: EspejoCatalogo): EspejoPublico {
     fotos: e.fotos,
     estado: e.estado,
     destacado: e.destacado,
+    creado: e.createdAt.toISOString(),
   };
 }
 
@@ -32,8 +33,9 @@ export async function getEspejosPublicados(): Promise<EspejoPublico[]> {
       orderBy: [{ destacado: "desc" }, { createdAt: "desc" }],
     });
     if (espejos.length > 0) return espejos.map(aPublico);
-  } catch {
-    // DB no configurada todavía: usamos el respaldo
+  } catch (e) {
+    // DB no disponible: usamos el respaldo, pero dejamos rastro del error real
+    console.error("[catalogo] getEspejosPublicados falló, usando fallback:", e);
   }
   return ESPEJOS_FALLBACK;
 }
@@ -45,8 +47,8 @@ export async function getEspejoPorSlug(
     const e = await prisma.espejoCatalogo.findUnique({ where: { slug } });
     if (e && e.publicadoWeb) return aPublico(e);
     if (e) return null;
-  } catch {
-    // DB no configurada todavía
+  } catch (err) {
+    console.error("[catalogo] getEspejoPorSlug falló, usando fallback:", err);
   }
   return ESPEJOS_FALLBACK.find((e) => e.slug === slug) ?? null;
 }
@@ -64,7 +66,8 @@ export async function getResenasPublicadas() {
       take: 6,
       select: { id: true, nombre: true, rating: true, texto: true, fotos: true },
     });
-  } catch {
+  } catch (e) {
+    console.error("[catalogo] getResenasPublicadas falló:", e);
     return [];
   }
 }
@@ -75,8 +78,8 @@ export async function getTextosNegocio() {
       where: { id: "singleton" },
     });
     if (config) return config;
-  } catch {
-    // DB no configurada todavía
+  } catch (e) {
+    console.error("[catalogo] getTextosNegocio falló:", e);
   }
   return null;
 }

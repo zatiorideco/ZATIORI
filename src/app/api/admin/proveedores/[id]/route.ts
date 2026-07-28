@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaPatch = z.object({
   tipo: z.enum(["MADERA", "ESPEJO", "INSUMO", "HERRAJE"]).optional(),
@@ -13,7 +13,7 @@ const esquemaPatch = z.object({
   notas: z.string().max(2000).nullable().optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -34,7 +34,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function handlerDELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -48,3 +48,6 @@ export async function DELETE(
     return errorJson("No se pudo borrar el proveedor.", 409);
   }
 }
+
+export const PATCH = withApi(handlerPATCH);
+export const DELETE = withApi(handlerDELETE);

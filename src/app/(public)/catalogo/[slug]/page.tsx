@@ -2,15 +2,19 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Ruler, TreePine, Paintbrush } from "lucide-react";
-import { getEspejoPorSlug, getEspejosPublicados } from "@/lib/catalogo";
-import { whatsappLink } from "@/lib/constants";
+import { ArrowLeft, Ruler, TreePine, Paintbrush, Star } from "lucide-react";
+import {
+  getEspejoPorSlug,
+  getEspejosPublicados,
+  getResenasPublicadas,
+} from "@/lib/catalogo";
+import { whatsappLink, SITE_URL, NEGOCIO } from "@/lib/constants";
 import { formatARS } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EspejoCard } from "@/components/public/EspejoCard";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -38,16 +42,49 @@ export default async function FichaEspejoPage({
   const espejo = await getEspejoPorSlug(params.slug);
   if (!espejo) notFound();
 
-  const relacionados = (await getEspejosPublicados())
+  const [todos, resenas] = await Promise.all([
+    getEspejosPublicados(),
+    getResenasPublicadas(),
+  ]);
+  const relacionados = todos
     .filter((e) => e.slug !== espejo.slug && e.tipoMarco === espejo.tipoMarco)
     .slice(0, 3);
+  const resenasDestacadas = resenas.filter((r) => r.rating >= 4).slice(0, 3);
 
   const mensajeWA = `¡Hola Zatiori! Me interesa el ${espejo.nombre}${
     espejo.ancho && espejo.alto ? ` (${espejo.ancho} × ${espejo.alto} cm)` : ""
   }. ¿Está disponible?`;
 
+  const productoJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: espejo.nombre,
+    description: espejo.descripcion ?? undefined,
+    image: espejo.fotos,
+    url: `${SITE_URL}/catalogo/${espejo.slug}`,
+    brand: { "@type": "Brand", name: NEGOCIO.nombre },
+    offers: {
+      "@type": "Offer",
+      price: espejo.precio,
+      priceCurrency: "ARS",
+      itemCondition: "https://schema.org/NewCondition",
+      availability:
+        espejo.estado === "DISPONIBLE"
+          ? "https://schema.org/InStock"
+          : espejo.estado === "RESERVADO"
+            ? "https://schema.org/LimitedAvailability"
+            : "https://schema.org/SoldOut",
+      url: `${SITE_URL}/catalogo/${espejo.slug}`,
+      seller: { "@type": "LocalBusiness", name: NEGOCIO.nombre },
+    },
+  };
+
   return (
     <div className="container py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productoJsonLd) }}
+      />
       <Link
         href="/catalogo"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-madera"
@@ -105,7 +142,7 @@ export default async function FichaEspejoPage({
               <Badge
                 variant={espejo.estado === "VENDIDO" ? "destructive" : "accent"}
               >
-                {espejo.estado === "VENDIDO" ? "Vendido" : "Reservado"}
+                {espejo.estado === "VENDIDO" ? "Ya tiene casa" : "Reservado"}
               </Badge>
             )}
           </div>
@@ -148,6 +185,39 @@ export default async function FichaEspejoPage({
               </div>
             )}
           </dl>
+
+          {resenasDestacadas.length > 0 && (
+            <div className="mt-8 space-y-3 border-t border-arena pt-6">
+              <p className="text-xs uppercase tracking-wider text-madera">
+                Lo que dicen quienes ya tienen el suyo
+              </p>
+              {resenasDestacadas.map((r) => (
+                <blockquote
+                  key={r.id}
+                  className="rounded-lg border border-arena bg-card p-3 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={
+                            i < r.rating
+                              ? "h-3.5 w-3.5 fill-madera text-madera"
+                              : "h-3.5 w-3.5 text-arena"
+                          }
+                        />
+                      ))}
+                    </span>
+                    <span className="font-medium text-espresso">{r.nombre}</span>
+                  </div>
+                  <p className="mt-1.5 font-editorial text-negro/80">
+                    “{r.texto}”
+                  </p>
+                </blockquote>
+              ))}
+            </div>
+          )}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a

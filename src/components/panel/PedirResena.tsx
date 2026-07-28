@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { waLink } from "@/lib/utils";
 
 export function PedirResena({
   clienteId,
@@ -33,11 +34,11 @@ export function PedirResena({
     setUrl(data.url);
   }
 
-  const tel = (telefono ?? "").replace(/\D/g, "");
-  const waUrl = url && tel
-    ? `https://wa.me/${tel.startsWith("54") ? tel : `54${tel}`}?text=${encodeURIComponent(
+  const waUrl = url
+    ? waLink(
+        telefono,
         `¡Hola ${nombre.split(" ")[0]}! ¿Cómo quedó el espejo en tu casa? Nos ayudaría un montón si nos dejás una reseña acá: ${url}`
-      )}`
+      )
     : null;
 
   if (!url) {

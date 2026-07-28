@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaPatch = z.object({
   descripcion: z.string().min(1).max(500).optional(),
@@ -13,7 +13,7 @@ const esquemaPatch = z.object({
 });
 
 /** Editar un ítem del pedido y recalcular el pedido. */
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -74,3 +74,5 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export const PATCH = withApi(handlerPATCH);

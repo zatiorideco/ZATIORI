@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaPatch = z.object({
   caption: z.string().min(1).max(2200).optional(),
@@ -9,7 +9,7 @@ const esquemaPatch = z.object({
   fechaProgramada: z.string().datetime().nullable().optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -42,7 +42,7 @@ export async function PATCH(
   return NextResponse.json(actualizada);
 }
 
-export async function DELETE(
+async function handlerDELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -59,3 +59,6 @@ export async function DELETE(
   await prisma.publicacionInstagram.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }
+
+export const PATCH = withApi(handlerPATCH);
+export const DELETE = withApi(handlerDELETE);

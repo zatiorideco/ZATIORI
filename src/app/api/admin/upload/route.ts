@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
+import { nombreArchivoSeguro } from "@/lib/utils";
 
 const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
 const TIPOS = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -28,10 +29,12 @@ export async function POST(req: Request) {
   }
 
   const { put } = await import("@vercel/blob");
-  const blob = await put(`espejos/${archivo.name}`, archivo, {
+  const blob = await put(`espejos/${nombreArchivoSeguro(archivo.name, archivo.type)}`, archivo, {
     access: "public",
     addRandomSuffix: true,
   });
 
   return NextResponse.json({ url: blob.url }, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

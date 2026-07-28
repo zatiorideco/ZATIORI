@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { formatARS, fechaAR } from "@/lib/utils";
+import { formatARS, fechaAR, waLink } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PedidoEditor } from "@/components/panel/PedidoEditor";
 import { ItemEditor } from "@/components/panel/ItemEditor";
@@ -35,12 +35,10 @@ export default async function PedidoDetallePage({
   });
   if (!pedido) notFound();
 
-  const telLimpio = (pedido.cliente.telefono ?? "").replace(/\D/g, "");
-  const waUrl = telLimpio
-    ? `https://wa.me/${telLimpio.startsWith("54") ? telLimpio : `54${telLimpio}`}?text=${encodeURIComponent(
-        `¡Hola ${pedido.cliente.nombre.split(" ")[0]}! Te escribimos de Zatiori por tu pedido ${pedido.numero}. Total ${formatARS(Number(pedido.total))}, seña ${formatARS(Number(pedido.sena))}, saldo ${formatARS(Number(pedido.saldo))}.`
-      )}`
-    : null;
+  const waUrl = waLink(
+    pedido.cliente.telefono,
+    `¡Hola ${pedido.cliente.nombre.split(" ")[0]}! Te escribimos de Zatiori por tu pedido ${pedido.numero}. Total ${formatARS(Number(pedido.total))}, seña ${formatARS(Number(pedido.sena))}, saldo ${formatARS(Number(pedido.saldo))}.`
+  );
 
   return (
     <div>

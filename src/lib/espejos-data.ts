@@ -16,6 +16,8 @@ export type EspejoPublico = {
   fotos: string[];
   estado: "DISPONIBLE" | "RESERVADO" | "VENDIDO";
   destacado: boolean;
+  /** Fecha de alta (ISO). Los datos de respaldo no la tienen. */
+  creado?: string | null;
 };
 
 export const TIPOS_MARCO = ["De pie", "Decorativo", "Industrial"] as const;

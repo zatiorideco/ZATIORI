@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
+import { revalidarWebPublica } from "@/lib/revalidar";
 
 const esquemaPatch = z.object({
   nombre: z.string().min(2).max(100).optional(),
@@ -21,7 +22,7 @@ const esquemaPatch = z.object({
   destacado: z.boolean().optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -36,13 +37,14 @@ export async function PATCH(
       where: { id: params.id },
       data: parseado.data,
     });
+    revalidarWebPublica(espejo.slug);
     return NextResponse.json(espejo);
   } catch {
     return errorJson("Espejo no encontrado", 404);
   }
 }
 
-export async function DELETE(
+async function handlerDELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -50,7 +52,10 @@ export async function DELETE(
   if (error) return error;
 
   try {
-    await prisma.espejoCatalogo.delete({ where: { id: params.id } });
+    const espejo = await prisma.espejoCatalogo.delete({
+      where: { id: params.id },
+    });
+    revalidarWebPublica(espejo.slug);
     return NextResponse.json({ ok: true });
   } catch {
     return errorJson(
@@ -59,3 +64,6 @@ export async function DELETE(
     );
   }
 }
+
+export const PATCH = withApi(handlerPATCH);
+export const DELETE = withApi(handlerDELETE);

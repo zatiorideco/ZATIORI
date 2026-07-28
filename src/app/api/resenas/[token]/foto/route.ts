@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { errorJson } from "@/lib/api-auth";
+import { nombreArchivoSeguro } from "@/lib/utils";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TIPOS = ["image/jpeg", "image/png", "image/webp", "image/avif"];
@@ -27,7 +28,7 @@ export async function POST(
   if (archivo.size > MAX_BYTES) return errorJson("La foto no puede superar los 8 MB.");
 
   const { put } = await import("@vercel/blob");
-  const blob = await put(`resenas/${archivo.name}`, archivo, {
+  const blob = await put(`resenas/${nombreArchivoSeguro(archivo.name, archivo.type)}`, archivo, {
     access: "public",
     addRandomSuffix: true,
   });

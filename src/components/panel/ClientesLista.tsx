@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X } from "lucide-react";
+import { MessageCircle, Pencil, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OrigenBadge } from "@/components/panel/OrigenBadge";
-import { fechaAR } from "@/lib/utils";
+import { fechaAR, waLink } from "@/lib/utils";
 
 type ClienteRow = {
   id: string;
@@ -42,6 +42,25 @@ export function ClientesLista({
     ciudad: "",
     origen: "LOCAL",
   });
+  const [editandoTel, setEditandoTel] = useState<string | null>(null);
+  const [telDraft, setTelDraft] = useState("");
+
+  async function guardarTelefono(c: ClienteRow) {
+    setEditandoTel(null);
+    const nuevoTel = telDraft.trim();
+    if (nuevoTel === (c.telefono ?? "")) return;
+    const res = await fetch(`/api/admin/clientes/${c.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telefono: nuevoTel || null }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error ?? "No se pudo guardar el teléfono.");
+      return;
+    }
+    router.refresh();
+  }
 
   function buscar(e: React.FormEvent) {
     e.preventDefault();
@@ -178,6 +197,7 @@ export function ClientesLista({
                 <th className="px-4 py-3">Origen</th>
                 <th className="px-4 py-3 text-center">Pedidos</th>
                 <th className="px-4 py-3">Alta</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -190,8 +210,40 @@ export function ClientesLista({
                   <td className="px-4 py-3 font-medium text-espresso">
                     <Link href={`/panel/clientes/${c.id}`}>{c.nombre}</Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {[c.telefono, c.email].filter(Boolean).join(" · ") || "—"}
+                  <td
+                    className="px-4 py-3 text-muted-foreground"
+                    onClick={(ev) => ev.stopPropagation()}
+                  >
+                    {editandoTel === c.id ? (
+                      <input
+                        autoFocus
+                        type="tel"
+                        placeholder="291 4…"
+                        className="h-8 w-36 rounded-md border border-madera bg-background px-2 text-sm"
+                        value={telDraft}
+                        onChange={(ev) => setTelDraft(ev.target.value)}
+                        onBlur={() => guardarTelefono(c)}
+                        onKeyDown={(ev) => {
+                          if (ev.key === "Enter") ev.currentTarget.blur();
+                          if (ev.key === "Escape") setEditandoTel(null);
+                        }}
+                      />
+                    ) : (
+                      <button
+                        className="group/tel inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-arena/50"
+                        title="Click para editar el teléfono"
+                        onClick={() => {
+                          setEditandoTel(c.id);
+                          setTelDraft(c.telefono ?? "");
+                        }}
+                      >
+                        {c.telefono ?? "Sin teléfono"}
+                        <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover/tel:opacity-60" />
+                      </button>
+                    )}
+                    {c.email && (
+                      <span className="ml-1 text-xs"> · {c.email}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">{c.ciudad ?? "—"}</td>
                   <td className="px-4 py-3">
@@ -200,6 +252,35 @@ export function ClientesLista({
                   <td className="px-4 py-3 text-center">{c.pedidos}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {fechaAR(c.creado)}
+                  </td>
+                  <td
+                    className="px-4 py-3"
+                    onClick={(ev) => ev.stopPropagation()}
+                  >
+                    <div className="flex justify-end">
+                      {waLink(
+                        c.telefono,
+                        `¡Hola ${c.nombre.split(" ")[0]}! Te escribimos de Zatiori.`
+                      ) ? (
+                        <a
+                          href={
+                            waLink(
+                              c.telefono,
+                              `¡Hola ${c.nombre.split(" ")[0]}! Te escribimos de Zatiori.`
+                            )!
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`WhatsApp a ${c.nombre}`}
+                        >
+                          <Button variant="ghost" size="icon" aria-label={`WhatsApp a ${c.nombre}`}>
+                            <MessageCircle className="h-4 w-4 text-ok" />
+                          </Button>
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

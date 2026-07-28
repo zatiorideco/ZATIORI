@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, EyeOff, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn, fechaAR } from "@/lib/utils";
+import { cn, fechaAR, waLink } from "@/lib/utils";
 import { SITE_URL } from "@/lib/constants";
 
 type ResenaRow = {
@@ -85,14 +85,11 @@ export function ResenasLista({ resenas }: { resenas: ResenaRow[] }) {
   }
 
   function linkWA(r: ResenaRow) {
-    const tel = (r.clienteTelefono ?? "").replace(/\D/g, "");
     const url = `${SITE_URL}/resena/${r.token}`;
-    const texto = encodeURIComponent(
+    return waLink(
+      r.clienteTelefono,
       `¡Hola ${r.nombre.split(" ")[0]}! ¿Cómo quedó el espejo en tu casa? Nos ayudaría un montón si nos dejás una reseña acá: ${url}`
     );
-    return tel
-      ? `https://wa.me/${tel.startsWith("54") ? tel : `54${tel}`}?text=${texto}`
-      : null;
   }
 
   return (

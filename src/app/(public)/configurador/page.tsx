@@ -27,6 +27,7 @@ async function getOpciones(): Promise<OpcionUI[]> {
       nombre: o.nombre,
       descripcion: o.descripcion,
       precioAdicional: Number(o.precioAdicional),
+      imagenUrl: o.imagenUrl,
     }));
   } catch {
     return [];

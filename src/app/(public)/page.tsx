@@ -6,13 +6,17 @@ import { Star } from "lucide-react";
 import { EspejoCard } from "@/components/public/EspejoCard";
 import { getDestacados, getResenasPublicadas } from "@/lib/catalogo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function HomePage() {
   const [destacados, resenas] = await Promise.all([
     getDestacados(),
     getResenasPublicadas(),
   ]);
+  const ratingPromedio =
+    resenas.length > 0
+      ? resenas.reduce((s, r) => s + r.rating, 0) / resenas.length
+      : 0;
   return (
     <>
       {/* Hero */}
@@ -129,6 +133,24 @@ export default async function HomePage() {
             <h2 className="mt-2 text-center font-display text-3xl uppercase text-espresso md:text-4xl">
               Lo que dicen nuestros clientes
             </h2>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={
+                      i < Math.round(ratingPromedio)
+                        ? "h-5 w-5 fill-madera text-madera"
+                        : "h-5 w-5 text-arena"
+                    }
+                  />
+                ))}
+              </span>
+              <span className="text-sm text-negro/75">
+                {ratingPromedio.toFixed(1)} de 5 · {resenas.length}{" "}
+                {resenas.length === 1 ? "reseña" : "reseñas"}
+              </span>
+            </div>
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {resenas.map((r) => (
                 <figure
@@ -150,6 +172,24 @@ export default async function HomePage() {
                   <blockquote className="mt-3 font-editorial text-negro/85">
                     “{r.texto}”
                   </blockquote>
+                  {r.fotos.length > 0 && (
+                    <div className="mt-4 flex gap-2">
+                      {r.fotos.slice(0, 3).map((foto) => (
+                        <div
+                          key={foto}
+                          className="relative h-20 w-20 overflow-hidden rounded-md"
+                        >
+                          <Image
+                            src={foto}
+                            alt={`Espejo de ${r.nombre}`}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <figcaption className="mt-4 text-sm font-medium text-espresso">
                     {r.nombre}
                   </figcaption>

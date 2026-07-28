@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaProveedor = z.object({
   tipo: z.enum(["MADERA", "ESPEJO", "INSUMO", "HERRAJE"]),
@@ -13,7 +13,7 @@ const esquemaProveedor = z.object({
   notas: z.string().max(2000).optional().or(z.literal("")),
 });
 
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN");
   if (error) return error;
 
@@ -34,3 +34,5 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(proveedor, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

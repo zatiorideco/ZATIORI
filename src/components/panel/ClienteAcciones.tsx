@@ -6,6 +6,7 @@ import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { waLink } from "@/lib/utils";
 
 type Cliente = {
   id: string;
@@ -40,10 +41,10 @@ export function ClienteAcciones({ cliente }: { cliente: Cliente }) {
     notas: cliente.notas ?? "",
   });
 
-  const telLimpio = (cliente.telefono ?? "").replace(/\D/g, "");
-  const waUrl = telLimpio
-    ? `https://wa.me/${telLimpio.startsWith("54") ? telLimpio : `54${telLimpio}`}?text=${encodeURIComponent(`¡Hola ${cliente.nombre.split(" ")[0]}! Te escribimos de Zatiori.`)}`
-    : null;
+  const waUrl = waLink(
+    cliente.telefono,
+    `¡Hola ${cliente.nombre.split(" ")[0]}! Te escribimos de Zatiori.`
+  );
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();

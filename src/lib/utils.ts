@@ -14,6 +14,21 @@ export function slugify(texto: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+const EXTENSION_POR_MIME: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/avif": "avif",
+};
+
+/** Nombre seguro para subir a blob storage: base slugificada + extensión
+ *  derivada del MIME type (nunca de lo que mande el cliente). */
+export function nombreArchivoSeguro(nombreOriginal: string, mime: string) {
+  const base = slugify(nombreOriginal.replace(/\.[^.]*$/, "")) || "foto";
+  const ext = EXTENSION_POR_MIME[mime] ?? "bin";
+  return `${base.slice(0, 80)}.${ext}`;
+}
+
 export function fechaAR(fecha: Date | string) {
   return new Date(fecha).toLocaleDateString("es-AR", {
     day: "2-digit",
@@ -21,6 +36,18 @@ export function fechaAR(fecha: Date | string) {
     year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires",
   });
+}
+
+/** Link de WhatsApp (wa.me): limpia el teléfono, antepone 54 si falta y
+ *  codifica el mensaje. Devuelve null si no hay teléfono. */
+export function waLink(
+  telefono: string | null | undefined,
+  mensaje?: string
+): string | null {
+  const tel = (telefono ?? "").replace(/\D/g, "");
+  if (!tel) return null;
+  const numero = tel.startsWith("54") ? tel : `54${tel}`;
+  return `https://wa.me/${numero}${mensaje ? `?text=${encodeURIComponent(mensaje)}` : ""}`;
 }
 
 export function formatARS(valor: number | string) {

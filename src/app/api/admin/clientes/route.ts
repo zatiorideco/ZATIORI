@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaCliente = z.object({
   nombre: z.string().min(2).max(100),
@@ -14,7 +14,7 @@ const esquemaCliente = z.object({
 });
 
 /** Buscador de clientes (para el alta de pedidos). */
-export async function GET(req: Request) {
+async function handlerGET(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   return NextResponse.json(clientes);
 }
 
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -57,3 +57,6 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(cliente, { status: 201 });
 }
+
+export const GET = withApi(handlerGET);
+export const POST = withApi(handlerPOST);

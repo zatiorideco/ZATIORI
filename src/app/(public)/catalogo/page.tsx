@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Espejos artesanales disponibles: filtrá por medida, precio, madera y color. Piezas únicas con marcos de madera hechas en Bahía Blanca.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function CatalogoPage() {
   const espejos = await getEspejosPublicados();

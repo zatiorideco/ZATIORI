@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaPatch = z.object({
   nombre: z.string().min(2).max(100).optional(),
@@ -13,7 +13,7 @@ const esquemaPatch = z.object({
   notas: z.string().max(2000).nullable().optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -34,7 +34,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function handlerDELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -51,3 +51,6 @@ export async function DELETE(
     );
   }
 }
+
+export const PATCH = withApi(handlerPATCH);
+export const DELETE = withApi(handlerDELETE);

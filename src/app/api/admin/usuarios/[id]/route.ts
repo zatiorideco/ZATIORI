@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquemaPatch = z.object({
   nombre: z.string().min(2).max(100).optional(),
@@ -11,7 +11,7 @@ const esquemaPatch = z.object({
   password: z.string().min(8).max(100).optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -48,3 +48,5 @@ export async function PATCH(
     return errorJson("Usuario no encontrado", 404);
   }
 }
+
+export const PATCH = withApi(handlerPATCH);

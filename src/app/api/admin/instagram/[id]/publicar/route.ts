@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { publicarEnInstagram } from "@/lib/instagram";
 
 /** Publicación explícita e inmediata en Instagram. */
-export async function POST(
+async function handlerPOST(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -23,3 +23,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = withApi(handlerPOST);

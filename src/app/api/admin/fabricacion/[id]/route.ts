@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import {
   esClienteZatiori,
   pasarACatalogo,
@@ -25,7 +25,7 @@ const esquemaPatch = z.object({
   fotos: z.array(z.string()).max(12).optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -86,3 +86,5 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true, estado: fabricacion.estado, aCatalogo });
 }
+
+export const PATCH = withApi(handlerPATCH);

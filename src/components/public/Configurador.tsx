@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export type OpcionUI = {
   nombre: string;
   descripcion: string | null;
   precioAdicional: number;
+  imagenUrl: string | null;
 };
 
 type Props = {
@@ -61,21 +63,36 @@ function OpcionCard({
       )}
     >
       {activa && (
-        <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-madera text-crema">
+        <span className="absolute right-3 top-3 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-madera text-crema">
           <Check className="h-3 w-3" />
         </span>
       )}
-      <p className="pr-8 font-medium text-espresso">{opcion.nombre}</p>
-      {opcion.descripcion && (
-        <p className="mt-1 text-sm text-muted-foreground">{opcion.descripcion}</p>
-      )}
-      <p className="mt-2 text-sm font-medium text-madera">
-        {opcion.precioAdicional > 0
-          ? `+ ${formatARS(opcion.precioAdicional)}`
-          : multi
-            ? "Sin costo"
-            : "Incluido"}
-      </p>
+      <div className="flex items-start gap-3">
+        {opcion.imagenUrl && (
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-arena">
+            <Image
+              src={opcion.imagenUrl}
+              alt={opcion.nombre}
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="pr-8 font-medium text-espresso">{opcion.nombre}</p>
+          {opcion.descripcion && (
+            <p className="mt-1 text-sm text-muted-foreground">{opcion.descripcion}</p>
+          )}
+          <p className="mt-2 text-sm font-medium text-madera">
+            {opcion.precioAdicional > 0
+              ? `+ ${formatARS(opcion.precioAdicional)}`
+              : multi
+                ? "Sin costo"
+                : "Incluido"}
+          </p>
+        </div>
+      </div>
     </button>
   );
 }

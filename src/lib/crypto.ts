@@ -21,8 +21,21 @@ export function cifrar(texto: string): string {
 }
 
 export function descifrar(payload: string): string {
-  const [iv, tag, cifrado] = payload.split(".").map((s) => Buffer.from(s, "base64"));
-  const decipher = createDecipheriv("aes-256-gcm", clave(), iv);
-  decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(cifrado), decipher.final()]).toString("utf8");
+  try {
+    const [iv, tag, cifrado] = payload
+      .split(".")
+      .map((s) => Buffer.from(s, "base64"));
+    if (!iv || !tag || !cifrado) {
+      throw new Error("formato inválido (se espera iv.tag.cifrado en base64)");
+    }
+    const decipher = createDecipheriv("aes-256-gcm", clave(), iv);
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(cifrado), decipher.final()]).toString("utf8");
+  } catch (e) {
+    const detalle = e instanceof Error ? e.message : String(e);
+    throw new Error(
+      `No se pudo descifrar el token de Instagram: ${detalle}. ` +
+        "Si cambió IG_TOKEN_ENCRYPTION_KEY hay que volver a conectar la cuenta."
+    );
+  }
 }

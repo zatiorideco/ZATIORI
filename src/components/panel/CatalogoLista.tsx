@@ -5,8 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  CalendarCheck,
-  CalendarX,
   FilePlus2,
   Globe,
   Pencil,
@@ -48,6 +46,8 @@ export function CatalogoLista({ espejos }: { espejos: EspejoRow[] }) {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("TODOS");
   const [ocupado, setOcupado] = useState<string | null>(null);
+  const [editandoPrecio, setEditandoPrecio] = useState<string | null>(null);
+  const [precioDraft, setPrecioDraft] = useState("");
 
   const tipos = useMemo(() => {
     const set = new Set(
@@ -81,6 +81,18 @@ export function CatalogoLista({ espejos }: { espejos: EspejoRow[] }) {
       return;
     }
     router.refresh();
+  }
+
+  function empezarEdicionPrecio(e: EspejoRow) {
+    setEditandoPrecio(e.id);
+    setPrecioDraft(e.precio > 0 ? String(e.precio) : "");
+  }
+
+  async function guardarPrecio(e: EspejoRow) {
+    setEditandoPrecio(null);
+    const nuevo = Number(precioDraft.replace(/[^\d.]/g, ""));
+    if (!Number.isFinite(nuevo) || nuevo < 0 || nuevo === e.precio) return;
+    await patch(e.id, { precio: nuevo });
   }
 
   async function borrar(e: EspejoRow) {
@@ -174,10 +186,29 @@ export function CatalogoLista({ espejos }: { espejos: EspejoRow[] }) {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-espresso">{e.nombre}</p>
+                        <p className="flex items-center gap-1.5 font-medium text-espresso">
+                          {e.nombre}
+                          <button
+                            onClick={() => patch(e.id, { destacado: !e.destacado })}
+                            title={
+                              e.destacado
+                                ? "Destacado en la home — click para sacarlo"
+                                : "Click para destacarlo en la home"
+                            }
+                            aria-label={`Destacar ${e.nombre}`}
+                          >
+                            <Star
+                              className={cn(
+                                "h-4 w-4 transition-colors",
+                                e.destacado
+                                  ? "fill-madera text-madera"
+                                  : "text-arena hover:text-madera"
+                              )}
+                            />
+                          </button>
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {e.tipoMarco ?? "Sin tipo"}
-                          {e.destacado && " · ⭐ destacado"}
                         </p>
                       </div>
                     </div>
@@ -190,16 +221,50 @@ export function CatalogoLista({ espejos }: { espejos: EspejoRow[] }) {
                     {[e.patina, e.tallado].filter(Boolean).join(" · ") || "—"}
                   </td>
                   <td className="px-4 py-2">
-                    {e.precio > 0 ? (
-                      formatARS(e.precio)
+                    {editandoPrecio === e.id ? (
+                      <input
+                        autoFocus
+                        type="number"
+                        min={0}
+                        className="h-8 w-28 rounded-md border border-madera bg-background px-2 text-sm"
+                        value={precioDraft}
+                        onChange={(ev) => setPrecioDraft(ev.target.value)}
+                        onBlur={() => guardarPrecio(e)}
+                        onKeyDown={(ev) => {
+                          if (ev.key === "Enter") ev.currentTarget.blur();
+                          if (ev.key === "Escape") setEditandoPrecio(null);
+                        }}
+                      />
                     ) : (
-                      <span className="text-warn">Sin precio</span>
+                      <button
+                        onClick={() => empezarEdicionPrecio(e)}
+                        className="rounded px-1 py-0.5 text-left hover:bg-arena/50"
+                        title="Click para editar el precio"
+                      >
+                        {e.precio > 0 ? (
+                          formatARS(e.precio)
+                        ) : (
+                          <span className="text-warn">Sin precio</span>
+                        )}
+                      </button>
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    <span className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", badge.clase)}>
-                      {badge.label}
-                    </span>
+                    <select
+                      className={cn(
+                        "h-8 rounded-full border-0 px-2.5 text-xs font-semibold",
+                        badge.clase
+                      )}
+                      value={e.estado}
+                      onChange={(ev) => patch(e.id, { estado: ev.target.value })}
+                      title="Cambiar estado"
+                    >
+                      {Object.entries(ESTADO_BADGE).map(([valor, b]) => (
+                        <option key={valor} value={valor}>
+                          {b.label}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button
@@ -230,28 +295,6 @@ export function CatalogoLista({ espejos }: { espejos: EspejoRow[] }) {
                             <FilePlus2 className="h-4 w-4 text-madera" />
                           </Button>
                         </Link>
-                      )}
-                      {e.estado === "DISPONIBLE" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Reservar"
-                          aria-label="Reservar"
-                          onClick={() => patch(e.id, { estado: "RESERVADO" })}
-                        >
-                          <CalendarCheck className="h-4 w-4 text-warn" />
-                        </Button>
-                      )}
-                      {e.estado === "RESERVADO" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Liberar reserva"
-                          aria-label="Liberar reserva"
-                          onClick={() => patch(e.id, { estado: "DISPONIBLE" })}
-                        >
-                          <CalendarX className="h-4 w-4 text-ok" />
-                        </Button>
                       )}
                       <Button
                         variant="ghost"

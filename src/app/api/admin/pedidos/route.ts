@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 
 const esquema = z
   .object({
@@ -28,7 +28,7 @@ const esquema = z
   });
 
 /** Alta manual de pedido desde el panel. */
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { session, error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -110,3 +110,5 @@ export async function POST(req: Request) {
 
   return NextResponse.json(resultado, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

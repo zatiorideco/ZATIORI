@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { SITE_URL } from "@/lib/constants";
 
 /** Crear invitación de reseña para un cliente (o reusar la pendiente). */
-export async function POST(req: Request) {
+async function handlerPOST(req: Request) {
   const { error } = await guard("ADMIN", "VENTAS");
   if (error) return error;
 
@@ -38,3 +38,5 @@ export async function POST(req: Request) {
     url: `${SITE_URL}/resena/${resena.token}`,
   });
 }
+
+export const POST = withApi(handlerPOST);

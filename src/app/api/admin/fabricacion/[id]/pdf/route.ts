@@ -1,11 +1,11 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { OrdenFabricacionPDF } from "@/lib/pdf/OrdenFabricacionPDF";
 
 export const runtime = "nodejs";
 
-export async function GET(
+async function handlerGET(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -62,3 +62,5 @@ export async function GET(
     },
   });
 }
+
+export const GET = withApi(handlerGET);

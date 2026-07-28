@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
 import { pasarACatalogo } from "@/lib/fabrica";
+import { revalidarWebPublica } from "@/lib/revalidar";
 
 /** "Pasar a catálogo": crea (o actualiza) el EspejoCatalogo de un espejo
  *  terminado para stock y lo deja vinculado. */
-export async function POST(
+async function handlerPOST(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -21,5 +22,8 @@ export async function POST(
   }
 
   const espejo = await pasarACatalogo(fab);
+  revalidarWebPublica(espejo.slug);
   return NextResponse.json(espejo, { status: 201 });
 }
+
+export const POST = withApi(handlerPOST);

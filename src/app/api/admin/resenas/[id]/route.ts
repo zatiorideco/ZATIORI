@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { guard, errorJson } from "@/lib/api-auth";
+import { guard, errorJson, withApi } from "@/lib/api-auth";
+import { revalidarWebPublica } from "@/lib/revalidar";
 
 const esquemaPatch = z.object({
   aprobada: z.boolean().optional(),
   publicadaWeb: z.boolean().optional(),
 });
 
-export async function PATCH(
+async function handlerPATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -29,13 +30,14 @@ export async function PATCH(
         ...(d.aprobada === false && { publicadaWeb: false }),
       },
     });
+    revalidarWebPublica();
     return NextResponse.json({ ok: true, id: resena.id });
   } catch {
     return errorJson("Reseña no encontrada", 404);
   }
 }
 
-export async function DELETE(
+async function handlerDELETE(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
@@ -44,8 +46,12 @@ export async function DELETE(
 
   try {
     await prisma.resena.delete({ where: { id: params.id } });
+    revalidarWebPublica();
     return NextResponse.json({ ok: true });
   } catch {
     return errorJson("Reseña no encontrada", 404);
   }
 }
+
+export const PATCH = withApi(handlerPATCH);
+export const DELETE = withApi(handlerDELETE);
